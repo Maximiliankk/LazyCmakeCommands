@@ -15,7 +15,7 @@ import setup
 # windows-specific features:
 # import winsound
 
-outputFilename = 'yourapp.exe'
+outputFilename = 'hello_world.exe'
 
 # Debug cmake generate cache vars
 DBG_CacheVars = [
@@ -32,9 +32,30 @@ RWD_CacheVars = [
 
 enableCompletionSound = True
 
-# Optionally redirect stdout and stderr to file
-enableStdoutToFile = True
-enableStderrToFile = False
+cmakeGeneratorsDict = {}
+cmakeGeneratorsDict['default'] = ''
+cmakeGeneratorsDict['vs'] = '-G Visual Studio 17 2022'
+cmakeGeneratorsDict['nm'] = '-G Ninja Multi-Config'
+
+configShorthands = {}
+configShorthands['dbg'] = 'Debug'
+configShorthands['rel'] = 'Release'
+configShorthands['rwd'] = 'Release'
+
+buildOperations = {}
+buildOperations['g'] = 'generate'
+buildOperations['b'] = 'build'
+buildOperations['d'] = 'deploy'
+buildOperations['r'] = 'run'
+buildOperations['c'] = 'clean'
+
+outputModes = {}
+outputModes[''] = 'both to file'
+outputModes['o'] = 'stdout to console'
+outputModes['e'] = 'stderr to console'
+outputModes['oe'] = 'both to console'
+outputModes['eo'] = 'both to console'
+
 redirOutputDir = '/stdOutput'
 generateStdOut = redirOutputDir + '/generateStdOut.txt'
 generateStdErr = redirOutputDir + '/generateStdErr.txt'
@@ -42,22 +63,8 @@ buildStdOut = redirOutputDir + '/buildStdOut.txt'
 buildStdErr = redirOutputDir + '/buildStdErr.txt'
 deployStdOut = redirOutputDir + '/deployStdOut.txt'
 deployStdErr = redirOutputDir + '/deployStdErr.txt'
-
-cmakeGeneratorsDict = {}
-cmakeGeneratorsDict['default'] = ''
-cmakeGeneratorsDict['vs'] = '-G Visual Studio 17 2022'
-cmakeGeneratorsDict['nm'] = '-G Ninja Multi-Config'
-
-buildOperations = {}
-buildOperations['g'] = 'generate'
-buildOperations['b'] = 'build'
-buildOperations['d'] = 'deploy'
-buildOperations['c'] = 'clean'
-
-configShorthands = {}
-configShorthands['dbg'] = 'Debug'
-configShorthands['rel'] = 'Release'
-configShorthands['rwd'] = 'Release'
+runStdOut = redirOutputDir + '/runStdOut.txt'
+runStdErr = redirOutputDir + '/runStdErr.txt'
 
 # end of preferences
 # =================================================================================================
@@ -74,8 +81,8 @@ class bcolors:
     YELLOW = '\033[93m'
     RED = '\033[91m'
     
-if len(sys.argv) != 4:
-    sys.exit('Error - need exactly 3 args.')
+if len(sys.argv) < 4 or len(sys.argv) > 5:
+    sys.exit('Error - need 3 or 4 args.')
 
 # arg 1
 buildGenerator = sys.argv[1]
@@ -97,6 +104,15 @@ if (buildOperation in buildOperations.keys()) == False:
     print(bcolors.GREEN + 'Available build operations are:' + bcolors.NORMAL)
     print(bcolors.GREEN + str(buildOperations) + bcolors.NORMAL) 
     sys.exit(bcolors.RED + 'Error - Bad build operation arg' + bcolors.NORMAL)
+    
+# arg 4 (optional)
+outputMode = 'default'
+if len(sys.argv) == 5:
+    outputMode = sys.argv[4]
+    if (outputMode in outputModes.keys()) == False:
+        print(bcolors.GREEN + 'Available output modes are:' + bcolors.NORMAL)
+        print(bcolors.GREEN + str(outputModes) + bcolors.NORMAL) 
+        sys.exit(bcolors.RED + 'Error - Bad output mode arg' + bcolors.NORMAL)
 
 # the full path to the parent dir of this file
 commandsDirPath = os.path.realpath(os.path.dirname(__file__)).replace(os.sep, '/')
@@ -104,18 +120,7 @@ commandsDirPath = os.path.realpath(os.path.dirname(__file__)).replace(os.sep, '/
 # output folder for the generated cmake project
 outputFolder = 'build/' + buildGenerator + '_' + buildConfig
 
-if not os.path.exists('build/'):
-    print('No ' + 'build/')
-    print('Creating... ')
-    os.mkdir('build/')
-if not os.path.exists(outputFolder):
-    print('No ' + outputFolder)
-    print('Creating... ')
-    os.mkdir(outputFolder)
-if not os.path.exists(outputFolder + redirOutputDir):
-    print('No ' + outputFolder + redirOutputDir)
-    print('Creating... ')
-    os.mkdir(outputFolder + redirOutputDir)
+os.makedirs(outputFolder + redirOutputDir, exist_ok=True)
 
 # end of args handling
 # =================================================================================================
@@ -138,14 +143,17 @@ def redirect_output(stdoutFile, stderrFile):
     stdErr_filename = outputFolder + stderrFile
     file_stdOut = open(stdOut_filename, 'w')
     file_stdErr = open(stdErr_filename, 'w')
-    if enableStdoutToFile == False:
-        file_stdOut = None
+
+    if outputMode == 'o' or outputMode == 'oe' or outputMode == 'eo':
+        file_stdOut = None # to console
+        print(bcolors.GREEN + 'std out going to console.' + bcolors.NORMAL)
     else:
         print('Sending stdout to ' + stdOut_filename)
-    if enableStderrToFile == False:
-        file_stdErr = None
+    if outputMode == 'e' or outputMode == 'oe' or outputMode == 'eo':
+        file_stdErr = None # to console
+        print(bcolors.RED + 'std err going to console.' + bcolors.NORMAL)
     else:
-        print('Sending stderr to ' + stdOut_filename)
+        print('Sending stderr to ' + stdErr_filename)
 
 # =================================================================================================
 def generate():
@@ -204,26 +212,55 @@ def deploy():
 
     print(bcolors.CYAN + 'Deploying...' + bcolors.NORMAL)
 
-    redirect_output(deployStdOut, buildStdErr)
+    redirect_output(deployStdOut, deployStdErr)
     configStr = configShorthands[buildConfig]
 
-    # windows specific example using robocopy:
+    exePath = outputFolder + '/' + configStr + '/' + outputFilename
+    exePath = os.path.realpath(exePath).replace(os.sep, '/')
+    
+    os.makedirs(setup.deployLocation + '/' + buildConfig, exist_ok=True)
 
-    # exePath = outputFolder + '/' + configStr + '/' + outputFilename
-    # exePath = os.path.realpath(exePath).replace(os.sep, '/')
-    # if os.path.isfile(exePath) :
-    #     subprocess.call([
-    #         'robocopy', '/S','/NP','/NFL',
-    #         outputFolder,
-    #         setup.deployLocation + '/' + buildConfig,
-    #         outputFilename
-    #     ], stdout=file_stdOut, stderr=file_stdErr)
-    #     print('Exe was located at ' + exePath)
-    # else:
-    #     print('No exe found at ' + exePath)
+    # shutil.copyfile(exePath, setup.deployLocation + '/' + buildConfig)
+
+    # windows specific example using robocopy:
+    if os.path.isfile(exePath) :
+        subprocess.call([
+            'robocopy', '/S','/NP','/NFL',
+            outputFolder,
+            setup.deployLocation + '/' + buildConfig,
+            outputFilename
+        ], stdout=file_stdOut, stderr=file_stdErr)
+        # print('Exe was located at ' + exePath)
+    else:
+        print('No exe found at ' + exePath)
 
     # if enableCompletionSound == True:
     #     winsound.Beep(784, 500) # Hz - G5, 500 ms
+
+
+# =================================================================================================
+def run():
+    global file_stdOut
+    global file_stdErr
+
+    print(bcolors.CYAN + 'Running...' + bcolors.NORMAL)
+
+    redirect_output(runStdOut, runStdErr)
+    configStr = configShorthands[buildConfig]
+
+    exePath = outputFolder + '/' + configStr + '/' + outputFilename
+    exePath = os.path.realpath(exePath).replace(os.sep, '/')
+    
+    os.makedirs(setup.deployLocation + '/' + buildConfig, exist_ok=True)
+    
+    exePath = outputFolder + '/' + configStr + '/' + outputFilename
+    exePath = os.path.realpath(exePath).replace(os.sep, '/')
+    if os.path.isfile(exePath) :
+        subprocess.call([
+            exePath
+        ], stdout=file_stdOut, stderr=file_stdErr)
+    else:
+        print('No exe found at ' + exePath)
 
 # =================================================================================================
 def clean():
@@ -252,5 +289,7 @@ elif buildOperation == 'b':
     build()
 elif buildOperation == 'd':
     deploy()
+elif buildOperation == 'r':
+    run()
 elif buildOperation == 'c':
     clean()
