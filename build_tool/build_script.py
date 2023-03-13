@@ -80,38 +80,54 @@ class bcolors:
     GREEN = '\033[92m'
     YELLOW = '\033[93m'
     RED = '\033[91m'
-    
+
+def printArg1info(infoStr):
+    print(bcolors.GREEN + 'Available generators are:' + bcolors.NORMAL)
+    print(bcolors.GREEN + infoStr + bcolors.NORMAL)
+def printArg2info(infoStr):
+    print(bcolors.YELLOW + 'Available configurations are:' + bcolors.NORMAL)
+    print(bcolors.YELLOW + infoStr + bcolors.NORMAL)
+def printArg3info(infoStr):
+    print(bcolors.BLUE + 'Available build operations are:' + bcolors.NORMAL)
+    print(bcolors.BLUE + infoStr + bcolors.NORMAL)
+    print(bcolors.BLUE + 'FYI - concat multiple OK (ie cgbd)' + bcolors.NORMAL)
+def printArg4info(infoStr):
+    print(bcolors.YELLOW + '(optional) Available output modes are:' + bcolors.NORMAL)
+    print(bcolors.YELLOW + infoStr + bcolors.NORMAL)
+
 if len(sys.argv) < 4 or len(sys.argv) > 5:
+    printArg1info(str(cmakeGeneratorsDict))
+    printArg1info(str(configShorthands))
+    printArg1info(str(buildOperations))
+    printArg1info(str(outputModes))
     sys.exit('Error - need 3 or 4 args.')
 
 # arg 1
 buildGenerator = sys.argv[1]
 if (buildGenerator in cmakeGeneratorsDict.keys()) == False:
-    print(bcolors.GREEN + 'Available generators are:' + bcolors.NORMAL)
-    print(bcolors.GREEN + str(cmakeGeneratorsDict) + bcolors.NORMAL) 
+    printArg1info(str(cmakeGeneratorsDict))
     sys.exit(bcolors.RED + 'Error - Bad generator arg' + bcolors.NORMAL)
 
 # arg 2
 buildConfig = sys.argv[2]
 if (buildConfig in configShorthands.keys()) == False:
-    print(bcolors.GREEN + 'Available configurations are:' + bcolors.NORMAL)
-    print(bcolors.GREEN + str(configShorthands) + bcolors.NORMAL) 
+    printArg1info(str(configShorthands))
     sys.exit(bcolors.RED + 'Error - Bad config arg' + bcolors.NORMAL)
 
 # arg 3
 buildOperation = sys.argv[3]
-if (buildOperation in buildOperations.keys()) == False:
-    print(bcolors.GREEN + 'Available build operations are:' + bcolors.NORMAL)
-    print(bcolors.GREEN + str(buildOperations) + bcolors.NORMAL) 
-    sys.exit(bcolors.RED + 'Error - Bad build operation arg' + bcolors.NORMAL)
+for element in range(0, len(buildOperation)):
+    if (buildOperation[element] in buildOperations.keys()) == False:
+        printArg1info(str(buildOperations))
+        sys.exit(bcolors.RED + 'Error - Bad build operation arg' + bcolors.NORMAL)
+        break
     
 # arg 4 (optional)
 outputMode = 'default'
 if len(sys.argv) == 5:
     outputMode = sys.argv[4]
     if (outputMode in outputModes.keys()) == False:
-        print(bcolors.GREEN + 'Available output modes are:' + bcolors.NORMAL)
-        print(bcolors.GREEN + str(outputModes) + bcolors.NORMAL) 
+        printArg1info(str(outputModes))
         sys.exit(bcolors.RED + 'Error - Bad output mode arg' + bcolors.NORMAL)
 
 # the full path to the parent dir of this file
@@ -120,7 +136,8 @@ commandsDirPath = os.path.realpath(os.path.dirname(__file__)).replace(os.sep, '/
 # output folder for the generated cmake project
 outputFolder = 'build/' + buildGenerator + '_' + buildConfig
 
-os.makedirs(outputFolder + redirOutputDir, exist_ok=True)
+def create_redirOutputDirs():
+    os.makedirs(outputFolder + redirOutputDir, exist_ok=True)
 
 # end of args handling
 # =================================================================================================
@@ -159,6 +176,7 @@ def redirect_output(stdoutFile, stderrFile):
 def generate():
     global file_stdOut
     global file_stdErr
+    create_redirOutputDirs()
 
     print(bcolors.GREEN + 'Generating...' + bcolors.NORMAL)
     genStart = time.time()
@@ -185,6 +203,7 @@ def generate():
 def build():
     global file_stdOut
     global file_stdErr
+    create_redirOutputDirs()
     
     print(bcolors.BLUE + 'Building...' + bcolors.NORMAL)
     buildStart = time.time()
@@ -209,6 +228,7 @@ def build():
 def deploy():
     global file_stdOut
     global file_stdErr
+    create_redirOutputDirs()
 
     print(bcolors.CYAN + 'Deploying...' + bcolors.NORMAL)
 
@@ -242,6 +262,7 @@ def deploy():
 def run():
     global file_stdOut
     global file_stdErr
+    create_redirOutputDirs()
 
     print(bcolors.CYAN + 'Running...' + bcolors.NORMAL)
 
@@ -283,13 +304,15 @@ def clean():
         print('Nothing to clean...' + outputFolder + ' does not exist.')
 
 # =================================================================================================
-if buildOperation == 'g':
-    generate()
-elif buildOperation == 'b':
-    build()
-elif buildOperation == 'd':
-    deploy()
-elif buildOperation == 'r':
-    run()
-elif buildOperation == 'c':
-    clean()
+for element in range(0, len(buildOperation)):
+    if buildOperation[element] == 'g':
+        generate()
+    elif buildOperation[element] == 'b':
+        build()
+    elif buildOperation[element] == 'd':
+        deploy()
+    elif buildOperation[element] == 'r':
+        run()
+    elif buildOperation[element] == 'c':
+        clean()
+
