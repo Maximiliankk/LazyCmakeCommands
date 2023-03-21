@@ -98,10 +98,10 @@ def printArg4info(infoStr):
 
 if len(sys.argv) < 4 or len(sys.argv) > 5:
     printArg1info(str(cmakeGeneratorsDict))
-    printArg1info(str(configShorthands))
-    printArg1info(str(buildOperations))
-    printArg1info(str(outputModes))
-    sys.exit('Error - need 3 or 4 args.')
+    printArg2info(str(configShorthands))
+    printArg3info(str(buildOperations))
+    printArg4info(str(outputModes))
+    sys.exit('Enter either 3 or 4 args.')
 
 # arg 1
 buildGenerator = sys.argv[1]
@@ -112,14 +112,14 @@ if (buildGenerator in cmakeGeneratorsDict.keys()) == False:
 # arg 2
 buildConfig = sys.argv[2]
 if (buildConfig in configShorthands.keys()) == False:
-    printArg1info(str(configShorthands))
+    printArg2info(str(configShorthands))
     sys.exit(bcolors.RED + 'Error - Bad config arg' + bcolors.NORMAL)
 
 # arg 3
 buildOperation = sys.argv[3]
 for element in range(0, len(buildOperation)):
     if (buildOperation[element] in buildOperations.keys()) == False:
-        printArg1info(str(buildOperations))
+        printArg3info(str(buildOperations))
         sys.exit(bcolors.RED + 'Error - Bad build operation arg' + bcolors.NORMAL)
         break
     
@@ -128,7 +128,7 @@ outputMode = 'default'
 if len(sys.argv) == 5:
     outputMode = sys.argv[4]
     if (outputMode in outputModes.keys()) == False:
-        printArg1info(str(outputModes))
+        printArg4info(str(outputModes))
         sys.exit(bcolors.RED + 'Error - Bad output mode arg' + bcolors.NORMAL)
 
 # the full path to the parent dir of this file
