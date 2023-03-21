@@ -48,6 +48,7 @@ buildOperations['b'] = 'build'
 buildOperations['d'] = 'deploy'
 buildOperations['r'] = 'run'
 buildOperations['c'] = 'clean'
+buildOperations['o'] = 'open'
 
 outputModes = {}
 outputModes[''] = 'both to file'
@@ -304,6 +305,19 @@ def clean():
         print('Nothing to clean...' + outputFolder + ' does not exist.')
 
 # =================================================================================================
+def open():
+    
+    if os.path.exists(outputFolder):
+        shutil.rmtree( outputFolder, onerror = remove_readonly )
+        print(bcolors.YELLOW + 'Opening...' + outputFolder + bcolors.NORMAL)
+    else:
+        print('Nothing to open...' + outputFolder + ' does not exist.')
+        
+    subprocess.call([
+        'cmake','--open',outputFolder
+    ])
+    
+# =================================================================================================
 for element in range(0, len(buildOperation)):
     if buildOperation[element] == 'g':
         generate()
@@ -315,4 +329,6 @@ for element in range(0, len(buildOperation)):
         run()
     elif buildOperation[element] == 'c':
         clean()
+    elif buildOperation[element] == 'o':
+        open()
 
