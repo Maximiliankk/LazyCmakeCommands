@@ -50,7 +50,7 @@ buildOperations['b'] = 'build'
 buildOperations['d'] = 'deploy'
 buildOperations['r'] = 'run'
 buildOperations['c'] = 'clean'
-buildOperations['o'] = 'open'
+buildOperations['o'] = 'open in ide'
 
 outputModes = {}
 outputModes[''] = 'both to file'
@@ -308,7 +308,7 @@ def clean():
         print('Nothing to clean...' + outputFolder + ' does not exist.')
 
 # =================================================================================================
-def open():
+def open_ide():
     
     if os.path.exists(outputFolder):
         shutil.rmtree( outputFolder, onerror = remove_readonly )
@@ -333,5 +333,5 @@ for element in range(0, len(buildOperation)):
     elif buildOperation[element] == 'c':
         clean()
     elif buildOperation[element] == 'o':
-        open()
+        open_ide()
 
