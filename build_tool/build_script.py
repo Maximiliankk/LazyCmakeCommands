@@ -17,14 +17,16 @@ import setup
 
 outputFilename = 'hello_world.exe'
 
+configCacheVars = {}
+
 # Debug cmake generate cache vars
-DBG_CacheVars = [
+configCacheVars['dbg'] = [
 ]
 # Release cmake generate cache vars
-REL_CacheVars = [
+configCacheVars['rel'] = [
 ]
 # ReleaseWithDebugInfo cmake generate cache vars
-RWD_CacheVars = [
+configCacheVars['rwd'] = [
 ]
 
 # =================================================================================================
@@ -183,13 +185,14 @@ def generate():
     genStart = time.time()
 
     redirect_output(generateStdOut, generateStdErr)
+    configStr = configShorthands[buildConfig]
 
     subprocess.call([
         'cmake',
         '-S', '.',
         '-B', outputFolder,
         cmakeGeneratorsDict[buildGenerator],
-        ] + DBG_CacheVars
+        ] + configCacheVars[configStr]
     , stdout=file_stdOut, stderr=file_stdErr)
 
     executionTime = (time.time() - genStart)
