@@ -185,14 +185,13 @@ def generate():
     genStart = time.time()
 
     redirect_output(generateStdOut, generateStdErr)
-    configStr = configShorthands[buildConfig]
 
     subprocess.call([
         'cmake',
         '-S', '.',
         '-B', outputFolder,
         cmakeGeneratorsDict[buildGenerator],
-        ] + configCacheVars[configStr]
+        ] + configCacheVars[buildConfig]
     , stdout=file_stdOut, stderr=file_stdErr)
 
     executionTime = (time.time() - genStart)
