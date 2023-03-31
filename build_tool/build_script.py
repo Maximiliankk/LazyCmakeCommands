@@ -1,4 +1,4 @@
-# The goal of this script is to make building and deploying as close as possible to a 1-click operation.
+# The goal of this script is to make common sequences of building and deploying as close as possible to a 1-command operation.
 
 # It is recommended to commit only the default usage of this file to your repo.
 # After the default usage is committed, then add this file to .gitignore to prevent further tracking.
