@@ -310,8 +310,7 @@ def clean():
 def open_ide():
     
     if os.path.exists(outputFolder):
-        shutil.rmtree( outputFolder, onerror = remove_readonly )
-        print(bcolors.YELLOW + 'Opening...' + outputFolder + bcolors.NORMAL)
+        print(bcolors.YELLOW + 'Trying to open...' + outputFolder + bcolors.NORMAL)
     else:
         print('Nothing to open...' + outputFolder + ' does not exist.')
         
